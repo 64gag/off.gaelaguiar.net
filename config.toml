@@ -1,4 +1,4 @@
-baseURL = "http://off.gaelaguiar.net"
+baseURL = "https://off.gaelaguiar.net"
 languageCode = "en-us"
 title = "Gael Aguiar"
 theme = "hello-friend-ng"
