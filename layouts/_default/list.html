@@ -11,10 +11,10 @@
 <hr />
 <pre id="dir-list">
 Name                               Summary                                Last modified        Size     Type
-<a class="name-col" href="{{ $parent }}">{{ printf "%-34.34s" "Parent Directory" }}</a> {{ printf "%-38.38s" "Go up one level" }} {{ printf "%-20s" "-" }} {{ printf "%-8s" "-" }} dir
+<a class="name-col" href="{{ $parent }}">Parent Directory</a> {{ printf "%-38.38s" "Go up one level" }} {{ printf "%-20s" "-" }} {{ printf "%-8s" "-" }} dir
 <span id="dir-rows">{{- range .Pages.ByDate.Reverse -}}
 {{- $summary := .Summary | plainify | replaceRE "\\s+" " " | strings.TrimSpace | truncate 38 -}}
-<span class="dir-entry" data-name="{{ lower .File.BaseFileName }}" data-summary="{{ lower $summary }}" data-date="{{ .Date.Unix }}" data-size="{{ len .Plain }}" data-type="txt"><a class="name-col" href="{{ .RelPermalink }}">{{ printf "%-34.34s" (printf "%s/" .File.BaseFileName) }}</a> {{ printf "%-38.38s" $summary }} {{ printf "%-20s" (.Date.Format "02-Jan-2006 15:04") }} {{ printf "%-8s" (printf "%dB" (len .Plain)) }} txt</span>
+<span class="dir-entry" data-name="{{ lower .File.BaseFileName }}" data-summary="{{ lower $summary }}" data-date="{{ .Date.Unix }}" data-size="{{ len .Plain }}" data-type="txt"><a class="name-col" href="{{ .RelPermalink }}">{{ printf "%s/" .File.BaseFileName }}</a> {{ printf "%-38.38s" $summary }} {{ printf "%-20s" (.Date.Format "02-Jan-2006 15:04") }} {{ printf "%-8s" (printf "%dB" (len .Plain)) }} txt</span>
 {{- end -}}</span>
 </pre>
 <div class="mobile-only">
