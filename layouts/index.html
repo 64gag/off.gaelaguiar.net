@@ -1,2 +1,27 @@
-{{ define "main" }} {{ partial "terminal_app.html" (dict "context" . "current"
-"") }} {{ end }}
+{{ define "main" }}
+<section>
+  <h1>Small, weird, and human</h1>
+  <p>
+    This corner of the web is intentionally plain. It should load fast, read
+    clearly, and stay out of your way.
+  </p>
+</section>
+
+<section>
+  <h2>Recent Articles</h2>
+  {{ $articles := where .Site.RegularPages "Section" "articles" }} {{ if gt (len
+  $articles) 0 }}
+  <ul class="article-list">
+    {{ range first 20 ($articles.ByDate.Reverse) }}
+    <li>
+      <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+      <span class="meta">{{ .Date.Format "2006-01-02" }}</span>
+    </li>
+    {{ end }}
+  </ul>
+  <p><a href="{{ `articles/` | relLangURL }}">browse all articles</a></p>
+  {{ else }}
+  <p>No articles yet.</p>
+  {{ end }}
+</section>
+{{ end }}

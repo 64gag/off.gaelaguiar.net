@@ -1,2 +1,20 @@
-{{ define "main" }} {{ partial "terminal_app.html" (dict "context" . "current"
-"") }} {{ end }}
+{{ define "main" }}
+<section>
+  <h1>{{ .Title }}</h1>
+  {{ with .Content }} {{ . }} {{ end }} {{ if gt (len .Pages) 0 }}
+  <ul class="article-list">
+    {{ range .Pages.ByDate.Reverse }}
+    <li>
+      <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+      {{ if .Date }}<span class="meta">{{ .Date.Format "2006-01-02" }}</span>{{
+      end }} {{ with .Summary }}
+      <p class="summary">{{ . | plainify }}</p>
+      {{ end }}
+    </li>
+    {{ end }}
+  </ul>
+  {{ else }}
+  <p>Nothing here yet.</p>
+  {{ end }}
+</section>
+{{ end }}

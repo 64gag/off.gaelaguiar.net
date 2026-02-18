@@ -1,2 +1,12 @@
-{{ define "main" }} {{ partial "terminal_app.html" (dict "context" . "current"
-.RelPermalink) }} {{ end }}
+{{ define "main" }}
+<article>
+  <p class="meta">
+    <a href="{{ `articles/` | relLangURL }}">&larr; back to articles</a>
+  </p>
+  <h1>{{ .Title }}</h1>
+  {{ if .Date }}
+  <p class="meta">Published {{ .Date.Format "2006-01-02" }}</p>
+  {{ end }}
+  <div class="article-body">{{ .Content }}</div>
+</article>
+{{ end }}

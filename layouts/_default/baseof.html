@@ -4,16 +4,41 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>
-      {{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} · {{ .Site.Title
+      {{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} | {{ .Site.Title
       }}{{ end }}
     </title>
     <meta
       name="description"
       content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}"
     />
-    <link rel="stylesheet" href="{{ `css/terminal.css` | relURL }}" />
+    <link rel="stylesheet" href="{{ `css/bare.css` | relURL }}" />
   </head>
   <body>
-    <main class="terminal-layout">{{ block "main" . }}{{ end }}</main>
+    <div class="site-shell">
+      <header class="site-header">
+        <p class="tiny">best viewed with curiosity, not an app</p>
+        <p class="site-title">
+          <a href="{{ .Site.Home.RelPermalink }}">{{ .Site.Title }}</a>
+        </p>
+        <nav aria-label="Primary">
+          <a href="{{ `` | relLangURL }}">home</a>
+          <a href="{{ `articles/` | relLangURL }}">articles</a>
+          <a href="{{ `contact/` | relLangURL }}">contact</a>
+        </nav>
+        <p class="languages" aria-label="Languages">
+          {{ range .Site.Home.AllTranslations }} {{ $label :=
+          .Language.LanguageName }} {{ if not $label }}{{ $label = upper
+          .Language.Lang }}{{ end }}
+          <a href="{{ .RelPermalink }}">{{ $label }}</a>
+          {{ end }}
+        </p>
+      </header>
+
+      <main id="content">{{ block "main" . }}{{ end }}</main>
+
+      <footer class="site-footer">
+        <p>no feed. no infinite scroll. just pages.</p>
+      </footer>
+    </div>
   </body>
 </html>
