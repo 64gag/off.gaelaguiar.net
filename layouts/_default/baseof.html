@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="{{ .Site.Language.Lang }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      {{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} · {{ .Site.Title
+      }}{{ end }}
+    </title>
+    <meta
+      name="description"
+      content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}"
+    />
+    <link rel="stylesheet" href="{{ `css/terminal.css` | relURL }}" />
+  </head>
+  <body>
+    <main class="terminal-layout">{{ block "main" . }}{{ end }}</main>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+services:
+  site:
+    build:
+      context: .
+      args:
+        HUGO_VERSION: ${HUGO_VERSION:-0.150.0}
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/node_modules
+    ports:
+      - "1313:1313"
+    command: bash -lc "npm ci && npm run serve"
+
+  ci:
+    build:
+      context: .
+      args:
+        HUGO_VERSION: ${HUGO_VERSION:-0.150.0}
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/node_modules
+    command: bash -lc "npm ci && npm run ci"
+
+volumes:
+  node_modules:
