@@ -7,9 +7,10 @@
       {{ if .IsHome }}Index of {{ .RelPermalink }}{{ else }}Index of {{
       .RelPermalink }}{{ end }}
     </title>
+    <link rel="stylesheet" href="{{ `css/mobile.css` | relURL }}" />
     <script src="{{ `js/index-tools.js` | relURL }}" defer></script>
   </head>
   <body>
-    {{ block "main" . }}{{ end }}
+    <main class="page">{{ block "main" . }}{{ end }}</main>
   </body>
 </html>

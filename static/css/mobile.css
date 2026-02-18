@@ -1,0 +1,95 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: monospace;
+  line-height: 1.4;
+  padding: 0.7rem;
+}
+
+.page {
+  max-width: 72rem;
+}
+
+a {
+  display: inline-block;
+  min-height: 1.7rem;
+}
+
+pre {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.25rem;
+}
+
+.sort-links {
+  margin: 0.6rem 0;
+}
+
+#search-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+#search-form input,
+#search-form button {
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.3rem 0.45rem;
+}
+
+#search-form input {
+  min-width: min(20rem, 100%);
+}
+
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  body {
+    padding: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  h1 {
+    font-size: 1.1rem;
+    margin: 0.5rem 0;
+  }
+
+  #dir-list {
+    display: none;
+  }
+
+  .mobile-only {
+    display: block;
+  }
+
+  .mobile-only ul {
+    margin: 0.4rem 0;
+    padding-left: 1.1rem;
+  }
+
+  .mobile-only li {
+    margin: 0.35rem 0;
+  }
+
+  #search-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #search-form input,
+  #search-form button {
+    width: 100%;
+  }
+
+  pre {
+    font-size: 0.86rem;
+  }
+}

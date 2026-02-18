@@ -3,7 +3,7 @@
 "02-Jan-2006 15:04" }} {{ $latestUnix = (index . 0).Lastmod.Unix }} {{ end }}
 <h1>Index of {{ .RelPermalink }}</h1>
 {{ partial "breadcrumb.html" . }}
-<p>
+<p class="sort-links">
   [sort: <a href="?sort=name">name</a> | <a href="?sort=date">date</a> |
   <a href="?sort=type">type</a>]
 </p>
@@ -17,6 +17,16 @@ Name                               Last modified        Size     Type
 <span class="dir-entry" data-name="robots.txt" data-date="{{ $latestUnix }}" data-size="72" data-type="txt"><a href="{{ `robots.txt` | relURL }}">{{ printf "%-34.34s" "robots.txt" }}</a> {{ printf "%-20s" $latest }} {{ printf "%-8s" "72B" }} txt</span>
 <span class="dir-entry" data-name="sitemap.xml" data-date="{{ $latestUnix }}" data-size="0" data-type="xml"><a href="{{ `sitemap.xml` | relURL }}">{{ printf "%-34.34s" "sitemap.xml" }}</a> {{ printf "%-20s" $latest }} {{ printf "%-8s" "auto" }} xml</span>
 </pre>
+<div class="mobile-only">
+  <p>Parent Directory: <a href="/">/</a></p>
+  <ul>
+    <li><a href="{{ `articles/` | relURL }}">articles/</a> (dir)</li>
+    <li><a href="{{ `contact/` | relURL }}">contact/</a> (dir)</li>
+    <li><a href="{{ `search/` | relURL }}">search/</a> (dir)</li>
+    <li><a href="{{ `robots.txt` | relURL }}">robots.txt</a> (txt)</li>
+    <li><a href="{{ `sitemap.xml` | relURL }}">sitemap.xml</a> (xml)</li>
+  </ul>
+</div>
 <hr />
 <p>README: tiny hand-made site. No app shell. No feed algorithm.</p>
 <p>Last updated: {{ $latest }}</p>

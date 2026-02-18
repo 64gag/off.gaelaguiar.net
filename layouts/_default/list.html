@@ -2,7 +2,7 @@
 .RelPermalink }}{{ end }}
 <h1>Index of {{ .RelPermalink }}</h1>
 {{ partial "breadcrumb.html" . }}
-<p>
+<p class="sort-links">
   [sort: <a href="?sort=name">name</a> | <a href="?sort=date">date</a> |
   <a href="?sort=size">size</a>]
 </p>
@@ -18,6 +18,17 @@ Name                               Last modified        Size     Type
 <span class="dir-entry" data-name="{{ lower .File.BaseFileName }}" data-date="{{ .Date.Unix }}" data-size="{{ $sizeBytes }}" data-type="txt"><a href="{{ .RelPermalink }}">{{ printf "%-34.34s" $name }}</a> {{ printf "%-20s" $modified }} {{ printf "%-8s" $sizeLabel }} txt</span>
 {{- end }}
 </pre>
+<div class="mobile-only">
+  <p>Parent Directory: <a href="{{ $parent }}">..</a></p>
+  <ul>
+    {{ range .Pages.ByDate.Reverse }}
+    <li>
+      <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+      <small>{{ .Date.Format "2006-01-02" }}</small>
+    </li>
+    {{ end }}
+  </ul>
+</div>
 <hr />
 <p>README: article archive. Click an entry to open it.</p>
 {{ end }}
