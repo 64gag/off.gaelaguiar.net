@@ -1,5 +1,8 @@
 {{ $path := trim .RelPermalink "/" }} {{ if eq $path "" }}
-<p>/</p>
-{{ else }} {{ $parts := split $path "/" }}
-<p>/{{ range $parts }} &gt; {{ . }}{{ end }}</p>
+<p><a href="/">/</a></p>
+{{ else }} {{ $parts := split $path "/" }} {{ $acc := "" }}
+<p>
+  <a href="/">/</a>{{ range $parts }}{{ $acc = printf "%s/%s" $acc . }} &gt;
+  <a href="{{ $acc }}/">{{ . }}</a>{{ end }}
+</p>
 {{ end }}

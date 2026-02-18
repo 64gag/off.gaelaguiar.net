@@ -2,20 +2,17 @@
 .RelPermalink }}{{ end }}
 <h1>Index of {{ .RelPermalink }}</h1>
 {{ partial "breadcrumb.html" . }}
-<p class="sort-links">
-  [sort: <a href="?sort=name">name</a> | <a href="?sort=date">date</a> |
-  <a href="?sort=size">size</a>]
+<p class="sort-links" id="sort-links">
+  [sort: <a href="?sort=name" data-sort="name">name</a> |
+  <a href="?sort=date" data-sort="date">date</a> |
+  <a href="?sort=size" data-sort="size">size</a>]
 </p>
 <hr />
 <pre id="dir-list">
-Name                               Last modified        Size     Type
-<a href="{{ $parent }}">{{ printf "%-34.34s" "Parent Directory" }}</a> {{ printf "%-20s" "-" }} {{ printf "%-8s" "-" }} dir
+Name                               Last modified        Size     Type  Summary
+<a class="name-col" href="{{ $parent }}">Parent Directory</a>      {{ printf "%-20s" "-" }} {{ printf "%-8s" "-" }} dir   Go up one level
 {{- range .Pages.ByDate.Reverse }}
-{{- $name := printf "%s/" .File.BaseFileName -}}
-{{- $modified := .Date.Format "02-Jan-2006 15:04" -}}
-{{- $sizeBytes := len .Plain -}}
-{{- $sizeLabel := printf "%dB" $sizeBytes -}}
-<span class="dir-entry" data-name="{{ lower .File.BaseFileName }}" data-date="{{ .Date.Unix }}" data-size="{{ $sizeBytes }}" data-type="txt"><a href="{{ .RelPermalink }}">{{ printf "%-34.34s" $name }}</a> {{ printf "%-20s" $modified }} {{ printf "%-8s" $sizeLabel }} txt</span>
+<span class="dir-entry" data-name="{{ lower .File.BaseFileName }}" data-date="{{ .Date.Unix }}" data-size="{{ len .Plain }}" data-type="txt"><a class="name-col" href="{{ .RelPermalink }}">{{ printf "%s/" .File.BaseFileName }}</a> {{ printf "%-20s" (.Date.Format "02-Jan-2006 15:04") }} {{ printf "%-8s" (printf "%dB" (len .Plain)) }} txt   {{ .Summary | plainify | truncate 42 }}</span>
 {{- end }}
 </pre>
 <div class="mobile-only">
@@ -24,7 +21,10 @@ Name                               Last modified        Size     Type
     {{ range .Pages.ByDate.Reverse }}
     <li>
       <a href="{{ .RelPermalink }}">{{ .Title }}</a>
-      <small>{{ .Date.Format "2006-01-02" }}</small>
+      <small
+        >{{ .Date.Format "2006-01-02" }} - {{ .Summary | plainify | truncate 70
+        }}</small
+      >
     </li>
     {{ end }}
   </ul>

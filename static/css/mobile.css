@@ -15,8 +15,14 @@ body {
 }
 
 a {
-  display: inline-block;
   min-height: 1.7rem;
+}
+
+a.name-col {
+  display: inline-block;
+  width: 34ch;
+  text-decoration: underline;
+  text-underline-offset: 0.1em;
 }
 
 pre {

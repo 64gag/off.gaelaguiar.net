@@ -3,28 +3,31 @@
 "02-Jan-2006 15:04" }} {{ $latestUnix = (index . 0).Lastmod.Unix }} {{ end }}
 <h1>Index of {{ .RelPermalink }}</h1>
 {{ partial "breadcrumb.html" . }}
-<p class="sort-links">
-  [sort: <a href="?sort=name">name</a> | <a href="?sort=date">date</a> |
-  <a href="?sort=type">type</a>]
+<p class="sort-links" id="sort-links">
+  [sort: <a href="?sort=name" data-sort="name">name</a> |
+  <a href="?sort=date" data-sort="date">date</a> |
+  <a href="?sort=type" data-sort="type">type</a>]
 </p>
 <hr />
 <pre id="dir-list">
-Name                               Last modified        Size     Type
-<a href="/">{{ printf "%-34.34s" "Parent Directory" }}</a> {{ printf "%-20s" "-" }} {{ printf "%-8s" "-" }} dir
-<span class="dir-entry" data-name="articles" data-date="{{ $latestUnix }}" data-size="0" data-type="dir"><a href="{{ `articles/` | relURL }}">{{ printf "%-34.34s" "articles/" }}</a> {{ printf "%-20s" $latest }} {{ printf "%-8s" "-" }} dir</span>
-<span class="dir-entry" data-name="contact" data-date="{{ $latestUnix }}" data-size="0" data-type="dir"><a href="{{ `contact/` | relURL }}">{{ printf "%-34.34s" "contact/" }}</a> {{ printf "%-20s" $latest }} {{ printf "%-8s" "-" }} dir</span>
-<span class="dir-entry" data-name="search" data-date="{{ $latestUnix }}" data-size="0" data-type="dir"><a href="{{ `search/` | relURL }}">{{ printf "%-34.34s" "search/" }}</a> {{ printf "%-20s" $latest }} {{ printf "%-8s" "-" }} dir</span>
-<span class="dir-entry" data-name="robots.txt" data-date="{{ $latestUnix }}" data-size="72" data-type="txt"><a href="{{ `robots.txt` | relURL }}">{{ printf "%-34.34s" "robots.txt" }}</a> {{ printf "%-20s" $latest }} {{ printf "%-8s" "72B" }} txt</span>
-<span class="dir-entry" data-name="sitemap.xml" data-date="{{ $latestUnix }}" data-size="0" data-type="xml"><a href="{{ `sitemap.xml` | relURL }}">{{ printf "%-34.34s" "sitemap.xml" }}</a> {{ printf "%-20s" $latest }} {{ printf "%-8s" "auto" }} xml</span>
+Name                               Last modified        Size     Type  Summary
+<a class="name-col" href="/">Parent Directory</a>      {{ printf "%-20s" "-" }} {{ printf "%-8s" "-" }} dir   Go up one level
+<span class="dir-entry" data-name="articles" data-date="{{ $latestUnix }}" data-size="0" data-type="dir"><a class="name-col" href="{{ `articles/` | relURL }}">articles/</a>              {{ printf "%-20s" $latest }} {{ printf "%-8s" "-" }} dir   Archive of all posts</span>
+<span class="dir-entry" data-name="contact" data-date="{{ $latestUnix }}" data-size="0" data-type="dir"><a class="name-col" href="{{ `contact/` | relURL }}">contact/</a>               {{ printf "%-20s" $latest }} {{ printf "%-8s" "-" }} dir   Basic contact details</span>
+<span class="dir-entry" data-name="search" data-date="{{ $latestUnix }}" data-size="0" data-type="dir"><a class="name-col" href="{{ `search/` | relURL }}">search/</a>                {{ printf "%-20s" $latest }} {{ printf "%-8s" "-" }} dir   Full-text search page</span>
 </pre>
 <div class="mobile-only">
   <p>Parent Directory: <a href="/">/</a></p>
   <ul>
-    <li><a href="{{ `articles/` | relURL }}">articles/</a> (dir)</li>
-    <li><a href="{{ `contact/` | relURL }}">contact/</a> (dir)</li>
-    <li><a href="{{ `search/` | relURL }}">search/</a> (dir)</li>
-    <li><a href="{{ `robots.txt` | relURL }}">robots.txt</a> (txt)</li>
-    <li><a href="{{ `sitemap.xml` | relURL }}">sitemap.xml</a> (xml)</li>
+    <li>
+      <a href="{{ `articles/` | relURL }}">articles/</a> - Archive of all posts
+    </li>
+    <li>
+      <a href="{{ `contact/` | relURL }}">contact/</a> - Basic contact details
+    </li>
+    <li>
+      <a href="{{ `search/` | relURL }}">search/</a> - Full-text search page
+    </li>
   </ul>
 </div>
 <hr />

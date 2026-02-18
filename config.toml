@@ -2,6 +2,7 @@ baseURL = "http://off.gaelaguiar.net"
 languageCode = "en-us"
 title = "Gael Aguiar"
 theme = "hello-friend-ng"
+disableKinds = ["sitemap"]
 
 [pagination]
   pagerSize = 10
