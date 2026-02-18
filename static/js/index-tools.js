@@ -1,6 +1,7 @@
 (function () {
   var list = document.getElementById("dir-list");
-  if (!list) return;
+  var rows = document.getElementById("dir-rows");
+  if (!list || !rows) return;
 
   var params = new URLSearchParams(window.location.search);
   var sortBy = params.get("sort") || "date";
@@ -21,13 +22,15 @@
     });
   }
 
-  var entries = Array.prototype.slice.call(list.querySelectorAll(".dir-entry"));
+  var entries = Array.prototype.slice.call(rows.querySelectorAll(".dir-entry"));
   if (!entries.length) return;
 
   entries.sort(function (a, b) {
     var cmp = 0;
     if (sortBy === "name") {
       cmp = (a.dataset.name || "").localeCompare(b.dataset.name || "");
+    } else if (sortBy === "summary") {
+      cmp = (a.dataset.summary || "").localeCompare(b.dataset.summary || "");
     } else if (sortBy === "size") {
       cmp = Number(a.dataset.size || 0) - Number(b.dataset.size || 0);
     } else if (sortBy === "type") {
@@ -39,9 +42,9 @@
     return order === "asc" ? cmp : -cmp;
   });
 
-  entries.forEach(function (entry) {
-    list.appendChild(document.createTextNode("\n"));
-    list.appendChild(entry);
+  while (rows.firstChild) rows.removeChild(rows.firstChild);
+  entries.forEach(function (entry, i) {
+    rows.appendChild(entry);
+    if (i < entries.length - 1) rows.appendChild(document.createTextNode("\n"));
   });
-  list.appendChild(document.createTextNode("\n"));
 })();

@@ -3,12 +3,11 @@ title: "Analog Cursor Echoes"
 date: 2026-01-07T08:00:00Z
 ---
 
-Somewhere between a personal page and a public notebook, this post is a reminder
-that the web can still be small.
+Entry 07: one different snapshot from a smaller web.
 
-Today I found one useful idea, one weird detail, and one link worth keeping.
-That is enough.
+Today I kept one thing and dropped one thing.
 
-- useful idea: write for humans first
-- weird detail: old sites often felt faster because they were simpler
-- link worth keeping: a page you can actually read end-to-end
+- kept: a local-first draft
+- dropped: algorithmic recommendations
+
+Small web rule 07: use fewer dependencies.

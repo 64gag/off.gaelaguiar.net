@@ -15,14 +15,14 @@ body {
 }
 
 a {
-  min-height: 1.7rem;
+  min-height: 0;
 }
 
 a.name-col {
   display: inline-block;
   width: 34ch;
-  text-decoration: underline;
-  text-underline-offset: 0.1em;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
 }
 
 pre {
@@ -83,6 +83,11 @@ pre {
 
   .mobile-only li {
     margin: 0.35rem 0;
+  }
+
+  .mobile-only a {
+    display: inline-block;
+    min-height: 1.7rem;
   }
 
   #search-form {

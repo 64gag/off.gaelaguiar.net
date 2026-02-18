@@ -3,12 +3,11 @@ title: "Noisy BBS Wanders"
 date: 2026-01-04T08:00:00Z
 ---
 
-Somewhere between a personal page and a public notebook, this post is a reminder
-that the web can still be small.
+Entry 04: one different snapshot from a smaller web.
 
-Today I found one useful idea, one weird detail, and one link worth keeping.
-That is enough.
+Today I kept one thing and dropped one thing.
 
-- useful idea: write for humans first
-- weird detail: old sites often felt faster because they were simpler
-- link worth keeping: a page you can actually read end-to-end
+- kept: a two-line profile
+- dropped: forced sign-in walls
+
+Small web rule 04: keep load times boringly fast.
