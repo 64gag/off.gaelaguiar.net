@@ -1,27 +1,23 @@
-{{ define "main" }}
-<section>
-  <h1>Small, weird, and human</h1>
-  <p>
-    This corner of the web is intentionally plain. It should load fast, read
-    clearly, and stay out of your way.
-  </p>
-</section>
-
-<section>
-  <h2>Recent Articles</h2>
-  {{ $articles := where .Site.RegularPages "Section" "articles" }} {{ if gt (len
-  $articles) 0 }}
-  <ul class="article-list">
-    {{ range first 20 ($articles.ByDate.Reverse) }}
-    <li>
-      <a href="{{ .RelPermalink }}">{{ .Title }}</a>
-      <span class="meta">{{ .Date.Format "2006-01-02" }}</span>
-    </li>
-    {{ end }}
-  </ul>
-  <p><a href="{{ `articles/` | relLangURL }}">browse all articles</a></p>
-  {{ else }}
-  <p>No articles yet.</p>
-  {{ end }}
-</section>
+{{ define "main" }} {{ $latest := "-" }} {{ $latestUnix := 0 }} {{ with first 1
+.Site.RegularPages.ByLastmod.Reverse }} {{ $latest = (index . 0).Lastmod.Format
+"02-Jan-2006 15:04" }} {{ $latestUnix = (index . 0).Lastmod.Unix }} {{ end }}
+<h1>Index of {{ .RelPermalink }}</h1>
+{{ partial "breadcrumb.html" . }}
+<p>
+  [sort: <a href="?sort=name">name</a> | <a href="?sort=date">date</a> |
+  <a href="?sort=type">type</a>]
+</p>
+<hr />
+<pre id="dir-list">
+Name                               Last modified        Size     Type
+<a href="/">{{ printf "%-34.34s" "Parent Directory" }}</a> {{ printf "%-20s" "-" }} {{ printf "%-8s" "-" }} dir
+<span class="dir-entry" data-name="articles" data-date="{{ $latestUnix }}" data-size="0" data-type="dir"><a href="{{ `articles/` | relURL }}">{{ printf "%-34.34s" "articles/" }}</a> {{ printf "%-20s" $latest }} {{ printf "%-8s" "-" }} dir</span>
+<span class="dir-entry" data-name="contact" data-date="{{ $latestUnix }}" data-size="0" data-type="dir"><a href="{{ `contact/` | relURL }}">{{ printf "%-34.34s" "contact/" }}</a> {{ printf "%-20s" $latest }} {{ printf "%-8s" "-" }} dir</span>
+<span class="dir-entry" data-name="search" data-date="{{ $latestUnix }}" data-size="0" data-type="dir"><a href="{{ `search/` | relURL }}">{{ printf "%-34.34s" "search/" }}</a> {{ printf "%-20s" $latest }} {{ printf "%-8s" "-" }} dir</span>
+<span class="dir-entry" data-name="robots.txt" data-date="{{ $latestUnix }}" data-size="72" data-type="txt"><a href="{{ `robots.txt` | relURL }}">{{ printf "%-34.34s" "robots.txt" }}</a> {{ printf "%-20s" $latest }} {{ printf "%-8s" "72B" }} txt</span>
+<span class="dir-entry" data-name="sitemap.xml" data-date="{{ $latestUnix }}" data-size="0" data-type="xml"><a href="{{ `sitemap.xml` | relURL }}">{{ printf "%-34.34s" "sitemap.xml" }}</a> {{ printf "%-20s" $latest }} {{ printf "%-8s" "auto" }} xml</span>
+</pre>
+<hr />
+<p>README: tiny hand-made site. No app shell. No feed algorithm.</p>
+<p>Last updated: {{ $latest }}</p>
 {{ end }}

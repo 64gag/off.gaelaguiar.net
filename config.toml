@@ -1,23 +1,14 @@
 baseURL = "http://off.gaelaguiar.net"
-
 languageCode = "en-us"
+title = "Gael Aguiar"
 theme = "hello-friend-ng"
-defaultContentLanguage = "en"
-defaultContentLanguageInSubdir = true
 
 [pagination]
   pagerSize = 10
 
 [params]
-  dateform = "Jan 2, 2006"
-  dateformShort = "Jan 2"
-  dateformNum = "2006-01-02"
-  dateformNumTime = "2006-01-02 15:04"
-  disableReadOtherPosts = true
-  enableSharingButtons = false
-  enableGlobalLanguageMenu = true
   description = "Professional homepage by Gael Aguiar"
-  keywords = "homepage, professional, computer, science, informatics, development, programming, technology"
+  keywords = "homepage, professional, computer, science, development, programming, technology"
   images = [""]
 
   [[params.social]]
@@ -32,53 +23,10 @@ defaultContentLanguageInSubdir = true
   category = "categories"
   tag = "tags"
 
-[languages]
-  [languages.en]
-    contentDir = "content/en"
-    languageCode = "en-US"
-    title = "Gael Aguiar"
-    keywords = ""
-    copyright = '<a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>'
-    readOtherPosts = "Read other posts"
+[[menu.main]]
+  identifier = "contact"
+  name = "Contact"
+  url = "/contact"
 
-  [languages.en.params]
-    homeSubtitle = "My professional homepage (under construction...)"
-
-    [languages.en.params.logo]
-      logoText = "$ cd /home/gael.aguiar"
-      logoHomeLink = "/"
-
-  [languages.fr]
-    contentDir = "content/fr"
-    languageCode = "fr-FR"
-    title = "Gael AGUIAR"
-    keywords = ""
-    copyright = '<a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>'
-    readOtherPosts = "Lire d'autres posts"
-
-  [languages.fr.params]
-    homeSubtitle = "Ma page d'accueil professionnelle (en construction ...)"
-
-    [languages.fr.params.logo]
-      logoText = "$ cd /home/gael.aguiar"
-      logoHomeLink = "/fr/"
-
-  [languages.es]
-    contentDir = "content/es"
-    languageCode = "es-ES"
-    title = "Gael Aguiar"
-    keywords = ""
-    copyright = '<a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>'
-    readOtherPosts = "Leer otros artículos"
-
-  [languages.es.params]
-    homeSubtitle = "Mi página profesional (en construcción...)"
-
-    [languages.es.params.logo]
-      logoText = "$ cd /home/gael.aguiar"
-      logoHomeLink = "/es/"
-
-  [[menu.main]]
-    identifier = "contact"
-    name = "Contact"
-    url = "/contact"
+[outputs]
+  home = ["HTML", "JSON", "RSS"]
