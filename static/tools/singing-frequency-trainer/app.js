@@ -20,9 +20,12 @@
     centsBar: document.getElementById("centsBar"),
     wideScaleMinInput: document.getElementById("wideScaleMinInput"),
     wideScaleMaxInput: document.getElementById("wideScaleMaxInput"),
+    historySecondsInput: document.getElementById("historySecondsInput"),
     fineScaleRange: document.getElementById("fineScaleRange"),
     wideScaleRange: document.getElementById("wideScaleRange"),
-    wideCentsBar: document.getElementById("wideCentsBar"),
+    wideHzBar: document.getElementById("wideHzBar"),
+    historyWindowLabel: document.getElementById("historyWindowLabel"),
+    historyPlot: document.getElementById("historyPlot"),
     permState: document.getElementById("permState"),
     secureState: document.getElementById("secureState"),
     mediaDevicesState: document.getElementById("mediaDevicesState"),
@@ -98,6 +101,13 @@
     recentPitches: [],
     smoothedPitch: null,
     currentErrorCents: null,
+    currentErrorHz: null,
+    analysisPeriodEmaMs: null,
+    wideRangeHz: { min: -20, max: 20 },
+    historySeconds: 15,
+    feedbackHistory: [],
+    historyPlotCtx: null,
+    historyPlotAnimationId: null,
     lastAnalysisTs: null,
     lastError: "none",
   };
@@ -154,19 +164,19 @@
     return `${value >= 0 ? "+" : "-"}${absolute}`;
   }
 
-  function normalizeWideScaleRange() {
+  function normalizeWideScaleRangeHz() {
     let min = Number(els.wideScaleMinInput.value);
     let max = Number(els.wideScaleMaxInput.value);
 
     if (!Number.isFinite(min)) {
-      min = -300;
+      min = -20;
     }
     if (!Number.isFinite(max)) {
-      max = 300;
+      max = 20;
     }
 
-    min = clamp(min, -2400, 2399);
-    max = clamp(max, -2399, 2400);
+    min = clamp(min, -2000, 1999);
+    max = clamp(max, -1999, 2000);
 
     if (min > max) {
       const nextMin = max;
@@ -176,10 +186,10 @@
     }
 
     if (min === max) {
-      if (max < 2400) {
-        max += 1;
+      if (max < 2000) {
+        max += 0.5;
       } else {
-        min -= 1;
+        min -= 0.5;
       }
     }
 
@@ -190,25 +200,41 @@
       max = 0;
     }
 
-    els.wideScaleMinInput.value = String(min);
-    els.wideScaleMaxInput.value = String(max);
+    els.wideScaleMinInput.value = min.toFixed(2);
+    els.wideScaleMaxInput.value = max.toFixed(2);
     return { min, max };
   }
 
+  function setHistorySeconds(nextSeconds) {
+    let seconds = Number(nextSeconds);
+    if (!Number.isFinite(seconds)) {
+      seconds = 15;
+    }
+
+    seconds = Math.round(clamp(seconds, 3, 120));
+    state.historySeconds = seconds;
+    els.historySecondsInput.value = String(seconds);
+    els.historyWindowLabel.textContent = `History window: last ${seconds} s`;
+    pruneFeedbackHistory(performance.now() / 1000);
+    return seconds;
+  }
+
   function updateScaleLabels() {
-    const wideRange = normalizeWideScaleRange();
+    const wideRange = normalizeWideScaleRangeHz();
+    state.wideRangeHz = wideRange;
     els.fineScaleRange.textContent = `Fine scale range: ${formatSigned(FINE_SCALE_MIN_CENTS)} to ${formatSigned(
       FINE_SCALE_MAX_CENTS,
     )} cents (fixed)`;
     els.wideScaleRange.textContent = `Wide scale range: ${formatSigned(wideRange.min)} to ${formatSigned(
       wideRange.max,
-    )} cents`;
+      2,
+    )} Hz`;
     return wideRange;
   }
 
-  function updateMeterPosition(meterEl, errorCents, minCents, maxCents) {
-    const clamped = clamp(errorCents, minCents, maxCents);
-    const pct = ((clamped - minCents) / (maxCents - minCents)) * 100;
+  function updateMeterPosition(meterEl, value, minValue, maxValue) {
+    const clamped = clamp(value, minValue, maxValue);
+    const pct = ((clamped - minValue) / (maxValue - minValue)) * 100;
     meterEl.style.left = `${pct}%`;
   }
 
@@ -220,7 +246,223 @@
       FINE_SCALE_MIN_CENTS,
       FINE_SCALE_MAX_CENTS,
     );
-    updateMeterPosition(els.wideCentsBar, 0, wideRange.min, wideRange.max);
+    updateMeterPosition(els.wideHzBar, 0, wideRange.min, wideRange.max);
+  }
+
+  function pruneFeedbackHistory(nowSeconds) {
+    const threshold = nowSeconds - state.historySeconds - 0.5;
+    while (
+      state.feedbackHistory.length &&
+      state.feedbackHistory[0].timestamp < threshold
+    ) {
+      state.feedbackHistory.shift();
+    }
+  }
+
+  function pushFeedbackHistory(timestampMs, pitchHz, confidence) {
+    const nowSeconds = timestampMs / 1000;
+    state.feedbackHistory.push({
+      timestamp: nowSeconds,
+      targetHz: state.targetHz,
+      pitchHz: Number.isFinite(pitchHz) ? pitchHz : null,
+      confidence: Number.isFinite(confidence) ? confidence : null,
+    });
+    pruneFeedbackHistory(nowSeconds);
+  }
+
+  function resizeCanvasToDisplaySize(canvas) {
+    if (!canvas) {
+      return { width: 0, height: 0 };
+    }
+    const ratio = window.devicePixelRatio || 1;
+    const displayWidth = Math.max(1, Math.floor(canvas.clientWidth * ratio));
+    const displayHeight = Math.max(1, Math.floor(canvas.clientHeight * ratio));
+    if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+      canvas.width = displayWidth;
+      canvas.height = displayHeight;
+    }
+    return { width: displayWidth, height: displayHeight };
+  }
+
+  function drawSmoothSeries(ctx, points, strokeStyle, dashed) {
+    if (!points.length) {
+      return;
+    }
+
+    ctx.save();
+    ctx.strokeStyle = strokeStyle;
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.setLineDash(dashed ? [6, 5] : []);
+
+    if (points.length === 1) {
+      ctx.beginPath();
+      ctx.arc(points[0].x, points[0].y, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = strokeStyle;
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length - 1; i += 1) {
+      const midpointX = (points[i].x + points[i + 1].x) / 2;
+      const midpointY = (points[i].y + points[i + 1].y) / 2;
+      ctx.quadraticCurveTo(points[i].x, points[i].y, midpointX, midpointY);
+    }
+    const last = points[points.length - 1];
+    ctx.lineTo(last.x, last.y);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawHistoryPlot(nowMs) {
+    if (!els.historyPlot) {
+      return;
+    }
+
+    if (!state.historyPlotCtx) {
+      state.historyPlotCtx = els.historyPlot.getContext("2d");
+    }
+    const ctx = state.historyPlotCtx;
+    if (!ctx) {
+      return;
+    }
+
+    const nowSeconds = nowMs / 1000;
+    pruneFeedbackHistory(nowSeconds);
+
+    const canvasSize = resizeCanvasToDisplaySize(els.historyPlot);
+    const fullWidth = canvasSize.width;
+    const fullHeight = canvasSize.height;
+    if (fullWidth < 2 || fullHeight < 2) {
+      return;
+    }
+
+    const padding = { top: 12, right: 14, bottom: 24, left: 60 };
+    const plotWidth = fullWidth - padding.left - padding.right;
+    const plotHeight = fullHeight - padding.top - padding.bottom;
+    if (plotWidth <= 0 || plotHeight <= 0) {
+      return;
+    }
+
+    const historySeconds = state.historySeconds;
+    const range = state.wideRangeHz;
+    const yMinHz = state.targetHz + range.min;
+    const yMaxHz = state.targetHz + range.max;
+    const spanHz = Math.max(0.001, yMaxHz - yMinHz);
+    const startSeconds = nowSeconds - historySeconds;
+
+    const toX = (timeSeconds) =>
+      padding.left +
+      ((timeSeconds - startSeconds) / historySeconds) * plotWidth;
+    const toY = (freqHz) =>
+      padding.top + (1 - (freqHz - yMinHz) / spanHz) * plotHeight;
+
+    ctx.clearRect(0, 0, fullWidth, fullHeight);
+    ctx.fillStyle = "#fbfdff";
+    ctx.fillRect(0, 0, fullWidth, fullHeight);
+
+    ctx.strokeStyle = "#d7e0ea";
+    ctx.lineWidth = 1;
+    for (let step = 0; step <= 4; step += 1) {
+      const y = padding.top + (step / 4) * plotHeight;
+      ctx.beginPath();
+      ctx.moveTo(padding.left, y);
+      ctx.lineTo(padding.left + plotWidth, y);
+      ctx.stroke();
+
+      const hz = yMaxHz - (step / 4) * spanHz;
+      ctx.fillStyle = "#61768d";
+      ctx.font = "12px IBM Plex Mono, monospace";
+      ctx.fillText(`${hz.toFixed(1)} Hz`, 6, y + 4);
+    }
+
+    ctx.strokeStyle = "#d7e0ea";
+    for (let step = 0; step <= 5; step += 1) {
+      const x = padding.left + (step / 5) * plotWidth;
+      ctx.beginPath();
+      ctx.moveTo(x, padding.top);
+      ctx.lineTo(x, padding.top + plotHeight);
+      ctx.stroke();
+
+      const secondsAgo = historySeconds - (step / 5) * historySeconds;
+      ctx.fillStyle = "#61768d";
+      ctx.font = "12px IBM Plex Mono, monospace";
+      ctx.fillText(`-${secondsAgo.toFixed(0)}s`, x - 14, fullHeight - 6);
+    }
+
+    ctx.save();
+    ctx.strokeStyle = "#8ca8d8";
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([6, 6]);
+    const baselineY = toY(state.targetHz);
+    ctx.beginPath();
+    ctx.moveTo(padding.left, baselineY);
+    ctx.lineTo(padding.left + plotWidth, baselineY);
+    ctx.stroke();
+    ctx.restore();
+
+    const targetPoints = [];
+    const pitchSegments = [];
+    let currentPitchSegment = [];
+
+    for (const sample of state.feedbackHistory) {
+      if (sample.timestamp < startSeconds) {
+        continue;
+      }
+      const x = toX(sample.timestamp);
+      targetPoints.push({ x, y: toY(sample.targetHz) });
+
+      if (sample.pitchHz === null) {
+        if (currentPitchSegment.length) {
+          pitchSegments.push(currentPitchSegment);
+          currentPitchSegment = [];
+        }
+        continue;
+      }
+
+      currentPitchSegment.push({ x, y: toY(sample.pitchHz) });
+    }
+    if (currentPitchSegment.length) {
+      pitchSegments.push(currentPitchSegment);
+    }
+
+    drawSmoothSeries(ctx, targetPoints, "#005ec4", true);
+    for (const segment of pitchSegments) {
+      drawSmoothSeries(ctx, segment, "#10223a", false);
+    }
+
+    ctx.strokeStyle = "#6e7e91";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(
+      padding.left,
+      padding.top,
+      Math.max(0, plotWidth),
+      Math.max(0, plotHeight),
+    );
+  }
+
+  function renderLoop(timestampMs) {
+    drawHistoryPlot(timestampMs);
+    state.historyPlotAnimationId = window.requestAnimationFrame(renderLoop);
+  }
+
+  function startRenderLoop() {
+    if (state.historyPlotAnimationId !== null) {
+      return;
+    }
+    state.historyPlotAnimationId = window.requestAnimationFrame(renderLoop);
+  }
+
+  function stopRenderLoop() {
+    if (state.historyPlotAnimationId === null) {
+      return;
+    }
+    window.cancelAnimationFrame(state.historyPlotAnimationId);
+    state.historyPlotAnimationId = null;
   }
 
   function updateEnvironmentDiagnostics() {
@@ -342,6 +584,7 @@
     }
 
     updateTargetReadouts();
+    pushFeedbackHistory(performance.now(), null, null);
   }
 
   function resetFeedback() {
@@ -354,9 +597,11 @@
     els.errorCents.className = "value";
     els.direction.className = "value";
     state.currentErrorCents = null;
+    state.currentErrorHz = null;
     resetMeterPositions();
     state.recentPitches = [];
     state.smoothedPitch = null;
+    state.feedbackHistory = [];
   }
 
   function computeRms(buffer) {
@@ -463,7 +708,7 @@
       : sorted[mid];
   }
 
-  function updateFeedback(freqHz, confidence) {
+  function updateFeedback(freqHz, confidence, timestampMs) {
     const targetHz = state.targetHz;
     const errorHz = freqHz - targetHz;
     const errorCents = 1200 * Math.log2(freqHz / targetHz);
@@ -480,6 +725,7 @@
     }
 
     state.currentErrorCents = errorCents;
+    state.currentErrorHz = errorHz;
     els.detectedHz.textContent = `${freqHz.toFixed(2)} Hz`;
     els.errorHz.textContent = `${errorHz >= 0 ? "+" : ""}${errorHz.toFixed(2)} Hz`;
     els.errorCents.textContent = `${errorCents >= 0 ? "+" : ""}${errorCents.toFixed(2)} c`;
@@ -497,14 +743,10 @@
       FINE_SCALE_MIN_CENTS,
       FINE_SCALE_MAX_CENTS,
     );
-    updateMeterPosition(
-      els.wideCentsBar,
-      errorCents,
-      wideRange.min,
-      wideRange.max,
-    );
+    updateMeterPosition(els.wideHzBar, errorHz, wideRange.min, wideRange.max);
 
     els.confidenceValue.textContent = confidence.toFixed(3);
+    pushFeedbackHistory(timestampMs, freqHz, confidence);
   }
 
   function processAudioFrame() {
@@ -521,7 +763,12 @@
     const rms = computeRms(state.frameBuffer);
     els.rmsValue.textContent = rms.toFixed(5);
     if (period > 0) {
-      els.analysisPeriod.textContent = `${period.toFixed(1)} ms`;
+      const alpha = 0.2;
+      state.analysisPeriodEmaMs =
+        state.analysisPeriodEmaMs === null
+          ? period
+          : alpha * period + (1 - alpha) * state.analysisPeriodEmaMs;
+      els.analysisPeriod.textContent = `${state.analysisPeriodEmaMs.toFixed(1)} ms`;
     }
 
     state.framesProcessed += 1;
@@ -530,6 +777,7 @@
     if (rms < state.rmsGate) {
       state.framesRejected += 1;
       els.framesRejected.textContent = String(state.framesRejected);
+      pushFeedbackHistory(now, null, null);
       return;
     }
 
@@ -558,6 +806,7 @@
       els.confidenceValue.textContent = result
         ? result.confidence.toFixed(3)
         : "0.000";
+      pushFeedbackHistory(now, null, result ? result.confidence : null);
       return;
     }
 
@@ -571,13 +820,13 @@
       return;
     }
 
-    const alpha = 0.35;
+    const alpha = 0.3;
     state.smoothedPitch =
       state.smoothedPitch === null
         ? medianPitch
         : alpha * medianPitch + (1 - alpha) * state.smoothedPitch;
 
-    updateFeedback(state.smoothedPitch, result.confidence);
+    updateFeedback(state.smoothedPitch, result.confidence, now);
   }
 
   async function startTone() {
@@ -690,6 +939,7 @@
       state.framesProcessed = 0;
       state.framesRejected = 0;
       state.lastAnalysisTs = null;
+      state.analysisPeriodEmaMs = null;
       resetFeedback();
 
       els.framesProcessed.textContent = "0";
@@ -734,6 +984,7 @@
     state.micStream = null;
     state.frameBuffer = null;
     state.lastAnalysisTs = null;
+    state.analysisPeriodEmaMs = null;
 
     els.startMicBtn.disabled = false;
     els.stopMicBtn.disabled = true;
@@ -769,30 +1020,39 @@
     els.stopToneBtn.addEventListener("click", stopTone);
     els.startMicBtn.addEventListener("click", startMic);
     els.stopMicBtn.addEventListener("click", stopMic);
+
     els.wideScaleMinInput.addEventListener("change", () => {
       const wideRange = updateScaleLabels();
       const referenceError =
-        state.currentErrorCents === null ? 0 : state.currentErrorCents;
+        state.currentErrorHz === null ? 0 : state.currentErrorHz;
       updateMeterPosition(
-        els.wideCentsBar,
-        referenceError,
-        wideRange.min,
-        wideRange.max,
-      );
-    });
-    els.wideScaleMaxInput.addEventListener("change", () => {
-      const wideRange = updateScaleLabels();
-      const referenceError =
-        state.currentErrorCents === null ? 0 : state.currentErrorCents;
-      updateMeterPosition(
-        els.wideCentsBar,
+        els.wideHzBar,
         referenceError,
         wideRange.min,
         wideRange.max,
       );
     });
 
+    els.wideScaleMaxInput.addEventListener("change", () => {
+      const wideRange = updateScaleLabels();
+      const referenceError =
+        state.currentErrorHz === null ? 0 : state.currentErrorHz;
+      updateMeterPosition(
+        els.wideHzBar,
+        referenceError,
+        wideRange.min,
+        wideRange.max,
+      );
+    });
+    els.historySecondsInput.addEventListener("change", (event) => {
+      setHistorySeconds(event.target.value);
+    });
+    els.historySecondsInput.addEventListener("input", (event) => {
+      setHistorySeconds(event.target.value);
+    });
+
     window.addEventListener("beforeunload", () => {
+      stopRenderLoop();
       stopTone();
       stopMic();
       if (state.audioCtx) {
@@ -805,6 +1065,7 @@
     updateEnvironmentDiagnostics();
     buildNoteOptions();
     bindEvents();
+    setHistorySeconds(15);
     setTargetHz(440, "hz");
     setupPermissionMonitoring();
     els.ctxState.textContent = "not initialized";
@@ -814,6 +1075,7 @@
     els.confidenceValue.textContent = "--";
     els.analysisPeriod.textContent = "--";
     resetMeterPositions();
+    startRenderLoop();
     addLog(
       "Application initialized. Click Start Tone or Start Microphone to begin audio session.",
     );

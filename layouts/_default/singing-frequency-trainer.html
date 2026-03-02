@@ -133,27 +133,38 @@
         <span id="direction" class="value">--</span>
       </div>
     </div>
-    <div class="grid two meter-controls">
+    <div class="grid three meter-controls">
       <label>
-        Wide scale min (cents)
+        Wide scale min (Hz)
         <input
           id="wideScaleMinInput"
           type="number"
-          min="-2400"
-          max="2399"
-          step="1"
-          value="-300"
+          min="-2000"
+          max="1999"
+          step="0.01"
+          value="-20"
         />
       </label>
       <label>
-        Wide scale max (cents)
+        Wide scale max (Hz)
         <input
           id="wideScaleMaxInput"
           type="number"
-          min="-2399"
-          max="2400"
+          min="-1999"
+          max="2000"
+          step="0.01"
+          value="20"
+        />
+      </label>
+      <label>
+        History seconds
+        <input
+          id="historySecondsInput"
+          type="number"
+          min="3"
+          max="120"
           step="1"
-          value="300"
+          value="15"
         />
       </label>
     </div>
@@ -164,11 +175,18 @@
       <div id="centsBar" class="meter-bar"></div>
     </div>
     <p id="wideScaleRange" class="meter-label">
-      Wide scale range: -300 to +300 cents
+      Wide scale range: -20 to +20 Hz
     </p>
     <div class="meter-wrap">
-      <div id="wideCentsBar" class="meter-bar"></div>
+      <div id="wideHzBar" class="meter-bar"></div>
     </div>
+    <p id="historyWindowLabel" class="meter-label">History window: last 15 s</p>
+    <div class="plot-wrap">
+      <canvas id="historyPlot" width="1080" height="320"></canvas>
+    </div>
+    <p class="meter-label plot-legend">
+      Time series: target frequency (blue) and detected pitch (dark) in Hz.
+    </p>
   </section>
 
   <section class="panel" aria-labelledby="diag-title">
