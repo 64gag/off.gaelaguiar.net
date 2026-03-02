@@ -833,7 +833,7 @@
       return;
     }
 
-    const minHz = clamp(Number(els.minHzInput.value) || 80, 40, 500);
+    const minHz = clamp(Number(els.minHzInput.value) || 24, 24, 500);
     const maxHz = clamp(Number(els.maxHzInput.value) || 1200, 200, 2000);
     const confidenceThreshold = clamp(
       Number(els.confidenceInput.value) || 0.85,
