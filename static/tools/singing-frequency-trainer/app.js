@@ -88,6 +88,8 @@
     audioCtx: null,
     oscillator: null,
     toneGain: null,
+    toneFilter: null,
+    pianoWave: null,
     micStream: null,
     sourceNode: null,
     highpassNode: null,
@@ -138,6 +140,28 @@
       solfege: CHROMATIC_SOLFEGE[pitchClass],
       refHz: midiToFreq(midi),
     };
+  }
+
+  function ensurePianoWave(ctx) {
+    if (state.pianoWave) {
+      return state.pianoWave;
+    }
+
+    const partialCount = 10;
+    const real = new Float32Array(partialCount);
+    const imag = new Float32Array(partialCount);
+    imag[1] = 1.0;
+    imag[2] = 0.62;
+    imag[3] = 0.42;
+    imag[4] = 0.27;
+    imag[5] = 0.18;
+    imag[6] = 0.11;
+    imag[7] = 0.075;
+    imag[8] = 0.045;
+    imag[9] = 0.025;
+
+    state.pianoWave = ctx.createPeriodicWave(real, imag);
+    return state.pianoWave;
   }
 
   function addLog(line) {
@@ -619,6 +643,14 @@
         state.audioCtx.currentTime,
         0.015,
       );
+      if (state.toneFilter) {
+        const pianoBrightnessHz = clamp(state.targetHz * 8, 900, 4800);
+        state.toneFilter.frequency.setTargetAtTime(
+          pianoBrightnessHz,
+          state.audioCtx.currentTime,
+          0.02,
+        );
+      }
     }
   }
 
@@ -891,21 +923,36 @@
       }
 
       const oscillator = ctx.createOscillator();
-      oscillator.type = "sine";
+      oscillator.setPeriodicWave(ensurePianoWave(ctx));
       oscillator.frequency.setValueAtTime(state.targetHz, ctx.currentTime);
 
       const gainNode = ctx.createGain();
-      gainNode.gain.setValueAtTime(
-        clamp(Number(els.gainInput.value) || 0.12, 0, 1),
-        ctx.currentTime,
+      const outputGain = clamp(Number(els.gainInput.value) || 0.12, 0, 1);
+      const peakGain = clamp(outputGain * 1.45, 0, 1);
+      const sustainGain = clamp(outputGain * 0.72, 0.0001, 1);
+      gainNode.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gainNode.gain.linearRampToValueAtTime(peakGain, ctx.currentTime + 0.012);
+      gainNode.gain.exponentialRampToValueAtTime(
+        sustainGain,
+        ctx.currentTime + 0.32,
       );
 
+      const toneFilter = ctx.createBiquadFilter();
+      toneFilter.type = "lowpass";
+      toneFilter.frequency.setValueAtTime(
+        clamp(state.targetHz * 8, 900, 4800),
+        ctx.currentTime,
+      );
+      toneFilter.Q.setValueAtTime(0.85, ctx.currentTime);
+
       oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
+      gainNode.connect(toneFilter);
+      toneFilter.connect(ctx.destination);
       oscillator.start();
 
       state.oscillator = oscillator;
       state.toneGain = gainNode;
+      state.toneFilter = toneFilter;
 
       els.startToneBtn.disabled = true;
       els.stopToneBtn.disabled = false;
@@ -930,9 +977,13 @@
     if (state.toneGain) {
       state.toneGain.disconnect();
     }
+    if (state.toneFilter) {
+      state.toneFilter.disconnect();
+    }
 
     state.oscillator = null;
     state.toneGain = null;
+    state.toneFilter = null;
 
     els.startToneBtn.disabled = false;
     els.stopToneBtn.disabled = true;
