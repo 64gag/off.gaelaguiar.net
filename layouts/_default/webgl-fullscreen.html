@@ -1,0 +1,259 @@
+{{ define "main" }}
+<style>
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #05070d;
+  }
+
+  main.page {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  #scene {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    display: block;
+  }
+
+  #overlay {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 1;
+    color: #d5def4;
+    font-family: monospace;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 0.45rem 0.6rem;
+    border: 1px solid #36405d;
+  }
+
+  #overlay a {
+    color: #8bc7ff;
+  }
+</style>
+
+<canvas id="scene" aria-label="Spinning WebGL cube demo"></canvas>
+
+<div id="overlay">
+  <div>{{ .Title }}</div>
+  <div>
+    <a href="{{ .RelPermalink }}">permalink</a> | <a href="/articles/">back</a>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var canvas = document.getElementById("scene");
+    var gl =
+      canvas.getContext("webgl", { antialias: true }) ||
+      canvas.getContext("experimental-webgl");
+
+    if (!gl) {
+      var message = document.createElement("div");
+      message.id = "overlay";
+      message.textContent = "WebGL is unavailable in this browser.";
+      document.body.appendChild(message);
+      return;
+    }
+
+    var vertexSource =
+      "attribute vec3 aPosition;" +
+      "attribute vec3 aColor;" +
+      "uniform mat4 uProjection;" +
+      "uniform mat4 uView;" +
+      "uniform mat4 uModel;" +
+      "varying vec3 vColor;" +
+      "void main(void) {" +
+      "  vColor = aColor;" +
+      "  gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);" +
+      "}";
+
+    var fragmentSource =
+      "precision mediump float;" +
+      "varying vec3 vColor;" +
+      "void main(void) {" +
+      "  gl_FragColor = vec4(vColor, 1.0);" +
+      "}";
+
+    function compile(type, source) {
+      var shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        throw new Error(gl.getShaderInfoLog(shader) || "Shader compile failed");
+      }
+      return shader;
+    }
+
+    var program = gl.createProgram();
+    gl.attachShader(program, compile(gl.VERTEX_SHADER, vertexSource));
+    gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragmentSource));
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      throw new Error(gl.getProgramInfoLog(program) || "Program link failed");
+    }
+    gl.useProgram(program);
+
+    var positions = new Float32Array([
+      -1, -1, 1, 1, -1, 1, 1, 1, 1, -1, 1, 1, -1, -1, -1, -1, 1, -1, 1, 1, -1,
+      1, -1, -1, -1, 1, -1, -1, 1, 1, 1, 1, 1, 1, 1, -1, -1, -1, -1, 1, -1, -1,
+      1, 1, -1, -1, 1, 1, 1, -1, 1, 1, 1, 1, -1, 1, -1, 1, -1, -1, 1, 1, 1, 1,
+      1, 1, 1, -1, -1, -1, -1, -1, 1, -1, 1, 1, -1, 1, -1,
+    ]);
+
+    var colors = new Float32Array([
+      0.93, 0.35, 0.32, 0.93, 0.35, 0.32, 0.93, 0.35, 0.32, 0.93, 0.35, 0.32,
+      0.31, 0.79, 0.98, 0.31, 0.79, 0.98, 0.31, 0.79, 0.98, 0.31, 0.79, 0.98,
+      0.5, 0.86, 0.42, 0.5, 0.86, 0.42, 0.5, 0.86, 0.42, 0.5, 0.86, 0.42, 0.97,
+      0.68, 0.2, 0.97, 0.68, 0.2, 0.97, 0.68, 0.2, 0.97, 0.68, 0.2, 0.64, 0.47,
+      0.9, 0.64, 0.47, 0.9, 0.64, 0.47, 0.9, 0.64, 0.47, 0.9, 0.98, 0.88, 0.28,
+      0.98, 0.88, 0.28, 0.98, 0.88, 0.28, 0.98, 0.88, 0.28,
+    ]);
+
+    var indices = new Uint16Array([
+      0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11, 12, 13, 14, 12,
+      14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23,
+    ]);
+
+    var posBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+    var colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+
+    var indexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+
+    var aPosition = gl.getAttribLocation(program, "aPosition");
+    var aColor = gl.getAttribLocation(program, "aColor");
+    var uProjection = gl.getUniformLocation(program, "uProjection");
+    var uView = gl.getUniformLocation(program, "uView");
+    var uModel = gl.getUniformLocation(program, "uModel");
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+    gl.enableVertexAttribArray(aPosition);
+    gl.vertexAttribPointer(aPosition, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.enableVertexAttribArray(aColor);
+    gl.vertexAttribPointer(aColor, 3, gl.FLOAT, false, 0, 0);
+
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
+
+    function identity() {
+      return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+    }
+
+    function perspective(fovy, aspect, near, far) {
+      var f = 1 / Math.tan(fovy / 2);
+      var nf = 1 / (near - far);
+      return [
+        f / aspect,
+        0,
+        0,
+        0,
+        0,
+        f,
+        0,
+        0,
+        0,
+        0,
+        (far + near) * nf,
+        -1,
+        0,
+        0,
+        2 * far * near * nf,
+        0,
+      ];
+    }
+
+    function multiply(a, b) {
+      var out = new Array(16);
+      for (var i = 0; i < 4; i += 1) {
+        for (var j = 0; j < 4; j += 1) {
+          out[j * 4 + i] =
+            a[i] * b[j * 4] +
+            a[i + 4] * b[j * 4 + 1] +
+            a[i + 8] * b[j * 4 + 2] +
+            a[i + 12] * b[j * 4 + 3];
+        }
+      }
+      return out;
+    }
+
+    function translate(z) {
+      var m = identity();
+      m[14] = z;
+      return m;
+    }
+
+    function rotateX(rad) {
+      var c = Math.cos(rad);
+      var s = Math.sin(rad);
+      return [1, 0, 0, 0, 0, c, s, 0, 0, -s, c, 0, 0, 0, 0, 1];
+    }
+
+    function rotateY(rad) {
+      var c = Math.cos(rad);
+      var s = Math.sin(rad);
+      return [c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, 0, 0, 0, 1];
+    }
+
+    function resize() {
+      var ratio = window.devicePixelRatio || 1;
+      var width = Math.max(1, Math.floor(window.innerWidth * ratio));
+      var height = Math.max(1, Math.floor(window.innerHeight * ratio));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    }
+
+    window.addEventListener("resize", resize);
+    resize();
+
+    var view = translate(-4.6);
+
+    function frame(nowMs) {
+      resize();
+
+      var now = nowMs * 0.001;
+      var projection = perspective(
+        Math.PI / 3,
+        canvas.width / canvas.height,
+        0.1,
+        100,
+      );
+      var model = multiply(rotateY(now * 1.1), rotateX(now * 0.7));
+
+      gl.clearColor(0.03, 0.04, 0.08, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      gl.uniformMatrix4fv(uProjection, false, new Float32Array(projection));
+      gl.uniformMatrix4fv(uView, false, new Float32Array(view));
+      gl.uniformMatrix4fv(uModel, false, new Float32Array(model));
+
+      gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+      window.requestAnimationFrame(frame);
+    }
+
+    window.requestAnimationFrame(frame);
+  })();
+</script>
+{{ end }}
