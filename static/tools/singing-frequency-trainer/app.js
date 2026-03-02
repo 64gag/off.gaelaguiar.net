@@ -108,6 +108,8 @@
     feedbackHistory: [],
     historyPlotCtx: null,
     historyPlotAnimationId: null,
+    wakeLock: null,
+    wakeLockUnsupportedLogged: false,
     lastAnalysisTs: null,
     lastError: "none",
   };
@@ -157,6 +159,56 @@
     state.lastError = "none";
     els.lastError.textContent = "none";
     els.lastError.className = "value";
+  }
+
+  async function requestScreenWakeLock() {
+    if (
+      !("wakeLock" in navigator) ||
+      !navigator.wakeLock ||
+      typeof navigator.wakeLock.request !== "function"
+    ) {
+      if (!state.wakeLockUnsupportedLogged) {
+        addLog("Screen Wake Lock API unavailable; display may sleep.");
+        state.wakeLockUnsupportedLogged = true;
+      }
+      return;
+    }
+
+    if (state.wakeLock) {
+      return;
+    }
+
+    try {
+      const wakeLock = await navigator.wakeLock.request("screen");
+      state.wakeLock = wakeLock;
+      addLog("Screen wake lock acquired.");
+
+      wakeLock.addEventListener("release", () => {
+        state.wakeLock = null;
+        addLog("Screen wake lock released.");
+
+        if (state.micStream && document.visibilityState === "visible") {
+          requestScreenWakeLock();
+        }
+      });
+    } catch (err) {
+      addLog(`Screen wake lock request failed: ${String(err)}`);
+    }
+  }
+
+  async function releaseScreenWakeLock() {
+    if (!state.wakeLock) {
+      return;
+    }
+
+    const lock = state.wakeLock;
+    state.wakeLock = null;
+
+    try {
+      await lock.release();
+    } catch (_err) {
+      // Ignore failures while releasing the lock.
+    }
   }
 
   function formatSigned(value, decimals = 0) {
@@ -947,6 +999,7 @@
       els.streamState.textContent = "active";
 
       state.analysisTimer = window.setInterval(processAudioFrame, 50);
+      await requestScreenWakeLock();
 
       els.startMicBtn.disabled = true;
       els.stopMicBtn.disabled = false;
@@ -985,6 +1038,7 @@
     state.frameBuffer = null;
     state.lastAnalysisTs = null;
     state.analysisPeriodEmaMs = null;
+    releaseScreenWakeLock();
 
     els.startMicBtn.disabled = false;
     els.stopMicBtn.disabled = true;
@@ -1050,11 +1104,21 @@
     els.historySecondsInput.addEventListener("input", (event) => {
       setHistorySeconds(event.target.value);
     });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        if (state.micStream) {
+          requestScreenWakeLock();
+        }
+      } else {
+        releaseScreenWakeLock();
+      }
+    });
 
     window.addEventListener("beforeunload", () => {
       stopRenderLoop();
       stopTone();
       stopMic();
+      releaseScreenWakeLock();
       if (state.audioCtx) {
         state.audioCtx.close();
       }
