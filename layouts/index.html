@@ -17,20 +17,6 @@ Name                               Summary                                Last m
 <span class="dir-entry" data-name="contact" data-summary="basic contact details" data-date="{{ $latestUnix }}" data-size="0" data-type="dir"><a class="name-col" href="{{ `contact/` | relURL }}">contact/</a> {{ printf "%-38.38s" "Basic contact details" }} {{ printf "%-20s" $latest }} {{ printf "%-8s" "-" }} dir</span>
 <span class="dir-entry" data-name="search" data-summary="full-text search page" data-date="{{ $latestUnix }}" data-size="0" data-type="dir"><a class="name-col" href="{{ `search/` | relURL }}">search/</a> {{ printf "%-38.38s" "Full-text search page" }} {{ printf "%-20s" $latest }} {{ printf "%-8s" "-" }} dir</span></span>
 </pre>
-<div class="mobile-only">
-  <p>Parent Directory: <a href="/">/</a></p>
-  <ul>
-    <li>
-      <a href="{{ `articles/` | relURL }}">articles/</a> - Archive of all posts
-    </li>
-    <li>
-      <a href="{{ `contact/` | relURL }}">contact/</a> - Basic contact details
-    </li>
-    <li>
-      <a href="{{ `search/` | relURL }}">search/</a> - Full-text search page
-    </li>
-  </ul>
-</div>
 <hr />
 <p>README: tiny hand-made site. No app shell. No feed algorithm.</p>
 <p>Last updated: {{ $latest }}</p>
