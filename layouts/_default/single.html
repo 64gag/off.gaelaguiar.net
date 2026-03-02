@@ -1,9 +1,11 @@
 {{ define "main" }} {{ $parent := "/" }} {{ with .Parent }}{{ $parent =
 .RelPermalink }}{{ end }}
+<link rel="stylesheet" href="{{ `css/article.css` | relURL }}" />
 <h1>Index of {{ .RelPermalink }}</h1>
 {{ partial "breadcrumb.html" . }}
 <hr />
-<pre>
+<section class="article-shell">
+  <pre class="article-readme">
 <a href="{{ $parent }}">Parent Directory</a>
 
 README.txt
@@ -12,6 +14,7 @@ Title: {{ .Title }}
 Date: {{ .Date.Format "2006-01-02" }}
 URL: {{ .RelPermalink }}
 </pre>
-{{ .Content }}
+  <article class="article-content">{{ .Content }}</article>
+</section>
 <hr />
 {{ end }}

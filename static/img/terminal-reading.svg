@@ -1,0 +1,48 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="1200"
+  height="700"
+  viewBox="0 0 1200 700"
+  role="img"
+  aria-labelledby="title desc"
+>
+  <title id="title">Responsive article layout diagram</title>
+  <desc id="desc">
+    A minimalist wireframe showing metadata on the left and readable article
+    content on the right.
+  </desc>
+  <rect width="1200" height="700" fill="#f4f4f4" />
+  <rect x="40" y="40" width="1120" height="620" fill="#ffffff" stroke="#b6b6b6" />
+  <rect x="70" y="90" width="290" height="530" fill="#f7f7f7" stroke="#bcbcbc" />
+  <rect x="390" y="90" width="740" height="530" fill="#ffffff" stroke="#d0d0d0" />
+
+  <text x="84" y="130" font-family="monospace" font-size="28" fill="#333">
+    README.txt
+  </text>
+  <line x1="84" y1="146" x2="280" y2="146" stroke="#777" />
+  <text x="84" y="186" font-family="monospace" font-size="22" fill="#444">
+    Title:
+  </text>
+  <text x="84" y="218" font-family="monospace" font-size="22" fill="#444">
+    Date:
+  </text>
+  <text x="84" y="250" font-family="monospace" font-size="22" fill="#444">
+    URL:
+  </text>
+
+  <text x="415" y="132" font-family="monospace" font-size="30" fill="#111">
+    An Article That Is Actually Readable
+  </text>
+  <line x1="415" y1="150" x2="1090" y2="150" stroke="#9c9c9c" />
+
+  <rect x="415" y="182" width="660" height="14" fill="#3b3b3b" opacity="0.18" />
+  <rect x="415" y="210" width="688" height="14" fill="#3b3b3b" opacity="0.18" />
+  <rect x="415" y="238" width="640" height="14" fill="#3b3b3b" opacity="0.18" />
+  <rect x="415" y="292" width="710" height="220" fill="#f8f8f8" stroke="#bcbcbc" />
+  <rect x="435" y="540" width="635" height="14" fill="#3b3b3b" opacity="0.18" />
+  <rect x="435" y="568" width="665" height="14" fill="#3b3b3b" opacity="0.18" />
+
+  <text x="420" y="324" font-family="monospace" font-size="24" fill="#444">
+    [illustration / figure]
+  </text>
+</svg>
