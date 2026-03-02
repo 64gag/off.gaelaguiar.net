@@ -103,7 +103,7 @@
     currentErrorCents: null,
     currentErrorHz: null,
     analysisPeriodEmaMs: null,
-    wideRangeHz: { min: -20, max: 20 },
+    wideRangeHz: { min: -100, max: 100 },
     historySeconds: 15,
     feedbackHistory: [],
     historyPlotCtx: null,
@@ -221,10 +221,10 @@
     let max = Number(els.wideScaleMaxInput.value);
 
     if (!Number.isFinite(min)) {
-      min = -20;
+      min = -100;
     }
     if (!Number.isFinite(max)) {
-      max = 20;
+      max = 100;
     }
 
     min = clamp(min, -2000, 1999);
