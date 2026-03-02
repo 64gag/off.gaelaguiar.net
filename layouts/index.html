@@ -1,6 +1,6 @@
 {{ define "main" }} {{ $latest := "-" }} {{ $latestUnix := 0 }} {{ with first 1
 .Site.RegularPages.ByLastmod.Reverse }} {{ $latest = (index . 0).Lastmod.Format
-"02-Jan-2006 15:04" }} {{ $latestUnix = (index . 0).Lastmod.Unix }} {{ end }}
+"2006-01-02" }} {{ $latestUnix = (index . 0).Lastmod.Unix }} {{ end }}
 <h1>Index of {{ .RelPermalink }}</h1>
 {{ partial "breadcrumb.html" . }}
 <p class="sort-links" id="sort-links">
